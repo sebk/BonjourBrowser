@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="BonjourBrowser" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
+                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="_http._tcp" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="0ps-vP-9u4">
+                                <rect key="frame" x="20" y="28" width="560" height="30"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" returnKeyType="search"/>
+                                <connections>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="ohL-HX-iWn"/>
+                                </connections>
+                            </textField>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="P9U-q7-NaT">
+                                <rect key="frame" x="533" y="110" width="48" height="30"/>
+                                <state key="normal" title="Search"/>
+                                <connections>
+                                    <action selector="startSearch" destination="BYZ-38-t0r" eventType="touchUpInside" id="d0q-kx-pIG"/>
+                                </connections>
+                            </button>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="cgx-A5-eBw">
+                                <rect key="frame" x="0.0" y="148" width="600" height="452"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="kAo-Hi-9yz"/>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="qKw-pg-BdO"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="0ps-vP-9u4" firstAttribute="trailing" secondItem="8bC-Xf-vdC" secondAttribute="trailingMargin" id="11X-Ja-cD2"/>
+                            <constraint firstItem="cgx-A5-eBw" firstAttribute="bottom" secondItem="wfy-db-euE" secondAttribute="top" id="5aY-CP-tL8"/>
+                            <constraint firstItem="cgx-A5-eBw" firstAttribute="top" secondItem="P9U-q7-NaT" secondAttribute="bottom" constant="8" symbolic="YES" id="D1c-d8-FI0"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="P9U-q7-NaT" secondAttribute="trailing" constant="-1" id="G4Z-8u-Cip"/>
+                            <constraint firstItem="cgx-A5-eBw" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="JhK-2K-h7i"/>
+                            <constraint firstItem="cgx-A5-eBw" firstAttribute="centerX" secondItem="0ps-vP-9u4" secondAttribute="centerX" id="TD3-EK-YFr"/>
+                            <constraint firstItem="0ps-vP-9u4" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="8" symbolic="YES" id="TMv-61-vPN"/>
+                            <constraint firstItem="P9U-q7-NaT" firstAttribute="top" secondItem="0ps-vP-9u4" secondAttribute="bottom" constant="52" id="WRU-P3-rnE"/>
+                            <constraint firstItem="0ps-vP-9u4" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="s97-s9-szC"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="tableView" destination="cgx-A5-eBw" id="3Hb-2z-sPE"/>
+                        <outlet property="textField" destination="0ps-vP-9u4" id="aBW-An-h11"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="448" y="357"/>
+        </scene>
+    </scenes>
+</document>
