@@ -10,9 +10,9 @@ import Foundation
 
 public protocol BonjourBrowserDelegate: class {
     
-    func didStartSearching(browser browser: BonjourBrowser)
+    func didStartSearching(browser: BonjourBrowser)
     
-    func didStopSearching(browser browser: BonjourBrowser)
+    func didStopSearching(browser: BonjourBrowser)
     
     /**
      Will be called when a service disappeared or is not available.
@@ -20,20 +20,20 @@ public protocol BonjourBrowserDelegate: class {
      - parameter browser:  FBServiceBrowser that is responsible for the browsing operation.
      - parameter services: NSNetService instances that were removed.
      */
-    func browser(browser: BonjourBrowser, didRemoveServices services: [NSNetService])
+    func browser(browser: BonjourBrowser, didRemoveServices services: [NetService])
 }
 
 extension BonjourBrowserDelegate {
     
-    func didStartSearching(browser browser: BonjourBrowser) {
+    func didStartSearching(browser: BonjourBrowser) {
         // optional
     }
     
-    func didStopSearching(browser browser: BonjourBrowser) {
+    func didStopSearching(browser: BonjourBrowser) {
         // optional
     }
     
-    func browser(browser: BonjourBrowser, didRemoveServices services: [NSNetService]) {
+    func browser(browser: BonjourBrowser, didRemoveServices services: [NetService]) {
         // optional
     }
 }
@@ -45,26 +45,25 @@ public class BonjourBrowser: NSObject {
     /// Will be set to true when a search is running.
     public var searching = false
     
-    private var searchCompletion: ((services: [NSNetService]?) -> Void)?
+    private var searchCompletion: ((_ services: [NetService]?) -> Void)?
     
-    //public typealias ResolveCompletionType = (Result) -> Void
     public enum Result {
         case Success((host: String, port: Int))
         case Failure(Error)
     }
-    public enum Error: ErrorType {
+    public enum BonjourError: Error {
         case ResolveFailure
     }
-    private var resolveCompletion: ((result: Result) -> Void)?
+    private var resolveCompletion: ((_ result: Result) -> Void)?
     
-    private var domainBrowser: NSNetServiceBrowser?
+    private var domainBrowser: NetServiceBrowser?
     private let serviceIdentifier: String!
-    private var receivedServices = [NSNetService]()
-    private var removedServices = [NSNetService]()
+    private var receivedServices = [NetService]()
+    private var removedServices = [NetService]()
     
     private let timeout = 10
     private var elapsedTime = 0
-    private var timer: NSTimer?
+    private var timer: Timer?
     
     
     //MARK: - Init
@@ -76,7 +75,7 @@ public class BonjourBrowser: NSObject {
     
     //MARK: - Public accessors/actions
     
-    public func browse(completion: (services: [NSNetService]?) -> Void) {
+    public func browse(completion: @escaping (_ services: [NetService]?) -> Void) {
         
         startTimeoutTimer()
         
@@ -86,12 +85,12 @@ public class BonjourBrowser: NSObject {
             domainBrowser!.stop()
         }
         
-        domainBrowser = NSNetServiceBrowser()
+        domainBrowser = NetServiceBrowser()
         domainBrowser!.delegate = self
         
         receivedServices.removeAll()
         
-        domainBrowser?.searchForServicesOfType(serviceIdentifier, inDomain: "local.")
+        domainBrowser?.searchForServices(ofType: serviceIdentifier, inDomain: "local.")
     }
     
     /**
@@ -102,12 +101,12 @@ public class BonjourBrowser: NSObject {
         domainBrowser?.stop()
     }
     
-    public func resolveService(service: NSNetService, completion: (result: Result) -> Void) {
+    public func resolveService(service: NetService, completion: @escaping (_ result: Result) -> Void) {
         
         self.resolveCompletion = completion
         
         service.delegate = self
-        service.resolveWithTimeout(10)
+        service.resolve(withTimeout: 10)
     }
     
     
@@ -119,10 +118,10 @@ public class BonjourBrowser: NSObject {
         
         elapsedTime = 0
         
-        timer = NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: #selector(BonjourBrowser.firedTimeoutTimer(_:)), userInfo: nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(firedTimeoutTimer(timer:)), userInfo: nil, repeats: true)
     }
     
-    @objc private func firedTimeoutTimer(timer: NSTimer) {
+    @objc private func firedTimeoutTimer(timer: Timer) {
         
         elapsedTime += 1
         
@@ -130,7 +129,7 @@ public class BonjourBrowser: NSObject {
             stopSearching()
             stop()
             
-            searchCompletion?(services: nil)
+            searchCompletion?(nil)
         }
     }
     
@@ -145,53 +144,44 @@ public class BonjourBrowser: NSObject {
     
 }
 
-extension BonjourBrowser: NSNetServiceBrowserDelegate {
+extension BonjourBrowser: NetServiceBrowserDelegate {
 
-    public func netServiceBrowserWillSearch(browser: NSNetServiceBrowser) {
-        
+    public func netServiceBrowserWillSearch(_ browser: NetServiceBrowser) {
         searching = true
-        
         delegate?.didStartSearching(browser: self)
     }
     
-    public func netServiceBrowserDidStopSearch(browser: NSNetServiceBrowser) {
-        
+    public func netServiceBrowserDidStopSearch(_ browser: NetServiceBrowser) {
         stopSearching()
-        
         delegate?.didStopSearching(browser: self)
     }
-    
-    public func netServiceBrowser(browser: NSNetServiceBrowser, didNotSearch errorDict: [String : NSNumber]) {
-        
+
+    public func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String : NSNumber]) {
         print(errorDict)
-        
         stopSearching()
-        
         delegate?.didStopSearching(browser: self)
     }
     
-    public func netServiceBrowser(browser: NSNetServiceBrowser, didFindService service: NSNetService, moreComing: Bool) {
-        
+    public func netServiceBrowser(_ browser: NetServiceBrowser, didFind service: NetService, moreComing: Bool) {
         if !receivedServices.contains(service) {
             receivedServices.append(service)
         }
         
         if moreComing == false {
             stopSearching()
-            searchCompletion?(services: receivedServices)
+            searchCompletion?(receivedServices)
         }
     }
     
-    public func netServiceBrowser(browser: NSNetServiceBrowser, didRemoveService service: NSNetService, moreComing: Bool) {
-        
-        if let index = receivedServices.indexOf(service) {
-            receivedServices.removeAtIndex(index)
+    public func netServiceBrowser(_ browser: NetServiceBrowser, didRemove service: NetService, moreComing: Bool) {
+        if let index = receivedServices.firstIndex(of: service) {
+            receivedServices.remove(at: index)
         }
         
         removedServices.append(service)
         
         if moreComing == false {
-            delegate?.browser(self, didRemoveServices: removedServices)
+            delegate?.browser(browser: self, didRemoveServices: removedServices)
             
             removedServices.removeAll()
         }
@@ -199,24 +189,23 @@ extension BonjourBrowser: NSNetServiceBrowserDelegate {
     
 }
 
-extension BonjourBrowser: NSNetServiceDelegate {
+extension BonjourBrowser: NetServiceDelegate {
     
-    public func netServiceDidResolveAddress(sender: NSNetService) {
-
+    public func netServiceDidResolveAddress(_ sender: NetService) {
         let result = Result.Success((host: sender.hostName!, port: sender.port))
-        self.resolveCompletion?(result: result)
+        self.resolveCompletion?(result)
     }
     
-    public func netService(sender: NSNetService, didNotResolve errorDict: [String : NSNumber]) {
+    public func netService(sender: NetService, didNotResolve errorDict: [String : NSNumber]) {
         
         var details = [String: String]()
         details[NSLocalizedDescriptionKey] = "Error resolving service"
-        let error = NSError(domain: "\(errorDict[NSNetServicesErrorDomain])", code: (errorDict[NSNetServicesErrorCode]?.integerValue)!, userInfo: details)
+        let error = NSError(domain: "\(String(describing: errorDict[NetService.errorDomain]))", code: (errorDict[NetService.errorCode]?.intValue)!, userInfo: details)
         print(error)
         
         sender.stop()
         
-        self.resolveCompletion?(result: Result.Failure(Error.ResolveFailure))
+        self.resolveCompletion?(Result.Failure(BonjourError.ResolveFailure))
     }
 }
 
